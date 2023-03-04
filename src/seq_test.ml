@@ -3,11 +3,17 @@
     | Cons of 'a * 'a t
 and 'a t = unit -> 'a node;;*)
 
-(*Function that print a 'a Seq.t list.*)
+(*Function that print a 'a Seq.t sequence.*)
 let rec print_seq (s : 'a Seq.t) : unit =
     match s() with
     | Nil -> Printf.printf "\b\b  \b\b\n"
     | Cons(a, b) -> Printf.printf "%d, " a; print_seq b;;
+
+(*Function that return the length of a sequence*)
+let rec length (s : 'a Seq.t) : int =
+    match s() with
+    | Seq.Nil -> 0
+    | Seq.Cons(_, s') -> 1 + length s';;
 
 
 (*Q2 : s = 17 -> 42 -> Nil*)
