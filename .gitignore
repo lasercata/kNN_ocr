@@ -1,3 +1,5 @@
+main
+print_mnist
 *.o
 *.cmi
 *.cmx
