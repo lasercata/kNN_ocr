@@ -1,2 +1,2 @@
 # kNN OCR
-Optical Character Recognition
+MNIST Optical Character Recognition
