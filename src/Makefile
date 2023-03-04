@@ -19,31 +19,31 @@ clean:
 
 # Dépendances générées automatiquement avec ocamldep
 knn.cmo : \
-    prioQueue.cmi \
-    knn.cmi
+	prioQueue.cmi \
+	knn.cmi
 knn.cmx : \
-    prioQueue.cmx \
-    knn.cmi
+	prioQueue.cmx \
+	knn.cmi
 knn.cmi :
 main.cmo : \
-    mnist.cmi \
-    knn.cmi
+	mnist.cmi \
+	knn.cmi
 main.cmx : \
-    mnist.cmx \
-    knn.cmx
+	mnist.cmx \
+	knn.cmx
 mnist.cmo : \
-    mnist.cmi
+	mnist.cmi
 mnist.cmx : \
-    mnist.cmi
+	mnist.cmi
 mnist.cmi :
 print_mnist.cmo : \
-    mnist.cmi
+	mnist.cmi
 print_mnist.cmx : \
-    mnist.cmx
+	mnist.cmx
 prioQueue.cmo : \
-    prioQueue.cmi
+	prioQueue.cmi
 prioQueue.cmx : \
-    prioQueue.cmi
+	prioQueue.cmi
 prioQueue.cmi :
 seq_test.cmo :
 seq_test.cmx :
