@@ -1,13 +1,6 @@
 type data = float array
 type 'label t = (data * 'label) Seq.t
 
-(*Function that return the length of a sequence*)
-let rec length (s : 'a Seq.t) : int =
-    match s() with
-    | Seq.Nil -> 0
-    | Seq.Cons(_, s') -> 1 + length s';;
-(*Todo: Use the function that is in seq_test.ml, but find how to compile ...*)
-
 (*Q5*)
 (*Function that count the number of occurrences of an element in a sequence.*)
 let rec count_item (i : 'a) (s : 'a Seq.t) : int =
@@ -18,7 +11,7 @@ let rec count_item (i : 'a) (s : 'a Seq.t) : int =
 (*Q6*)
 (*Function that calculate an element of s such that the frequency of this element is maximal*)
 let most_frequent (s : 'a Seq.t) : 'a =
-    let len = length s in
+    let len = Seq_test.length s in
 
     if len = 0 then
         failwith "The sequence should contain at least one element !";

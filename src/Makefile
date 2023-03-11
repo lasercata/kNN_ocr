@@ -5,7 +5,7 @@ all: print_mnist main
 print_mnist: mnist.cmx print_mnist.cmx
 	ocamlopt -o $@ $^
 
-main: mnist.cmx prioQueue.cmx knn.cmx main.cmx
+main: mnist.cmx prioQueue.cmx seq_test.cmx knn.cmx main.cmx
 	ocamlopt -o $@ $^
 
 clean:
@@ -20,9 +20,11 @@ clean:
 # Dépendances générées automatiquement avec ocamldep
 knn.cmo : \
 	prioQueue.cmi \
+	seq_test.cmi \
 	knn.cmi
 knn.cmx : \
 	prioQueue.cmx \
+	seq_test.cmx \
 	knn.cmi
 knn.cmi :
 main.cmo : \
@@ -45,5 +47,8 @@ prioQueue.cmo : \
 prioQueue.cmx : \
 	prioQueue.cmi
 prioQueue.cmi :
-seq_test.cmo :
-seq_test.cmx :
+seq_test.cmo : \
+	seq_test.cmi
+seq_test.cmx : \
+	seq_test.cmi
+seq_test.cmi :

@@ -4,7 +4,7 @@
 and 'a t = unit -> 'a node;;*)
 
 (*Function that print a 'a Seq.t sequence.*)
-let rec print_seq (s : 'a Seq.t) : unit =
+let rec print_seq (s : int Seq.t) : unit =
     match s() with
     | Nil -> Printf.printf "\b\b  \b\b\n"
     | Cons(a, b) -> Printf.printf "%d, " a; print_seq b;;
