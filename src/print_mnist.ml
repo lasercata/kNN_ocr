@@ -8,6 +8,7 @@ let print_image (image : int array) : unit =
     close_in f;;
 
 let main (_ : unit) : unit =
+    if Array.length (Sys.argv) <> 2 then failwith "Exactly one argument is needed (the index of the image).";
     let train_images = Mnist.open_in "train-images-idx3-ubyte" in
     let train_labels = Mnist.open_in "train-labels-idx1-ubyte" in
     let index = int_of_string Sys.argv.(1) in
