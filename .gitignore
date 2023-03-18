@@ -1,6 +1,6 @@
-main
-print_mnist
-test
+src/main
+src/print_mnist
+src/test
 *.o
 *.cmi
 *.cmx
