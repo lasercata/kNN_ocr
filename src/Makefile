@@ -14,6 +14,9 @@ main: mnist.cmx prioQueue.cmx seq_test.cmx knn.cmx main.cmx
 clean:
 	rm -f *.cmi *.cmo *.cmx *.o test print_mnist main
 
+cleanup:
+	rm -f *.cmi *.cmo *.cmx *.o
+
 %.cmx: %.ml
 	ocamlopt -c -o $@ $<
 
