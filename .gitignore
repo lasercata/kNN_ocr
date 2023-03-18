@@ -1,5 +1,6 @@
 main
 print_mnist
+test
 *.o
 *.cmi
 *.cmx
