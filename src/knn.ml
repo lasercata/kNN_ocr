@@ -16,14 +16,16 @@ let euclidean_dist (u : float array) (v : float array) : float =
     sqrt !sum;;
 
 (*Q8*)
-let mnist_seq (n : int) (img : Mnist.idx) (labels : Mnist.idx) : (int array * int) Seq.t =
-    let s = ref (fun _ -> Seq.Nil) in
-    for k = 0 to labels.size.(0) - 1 do
-        s := (
-            fun _ -> Seq.Cons((Mnist.get img k, (Mnist.get labels k).(0)), !s)
-        )
-    done;
-    !s;;
+let rec mnist_seq (n : int) (img : Mnist.idx) (labels : Mnist.idx) : (int array * int) Seq.t =
+    match n with
+    | 0 -> (fun _ -> Seq.Nil)
+    | n -> (
+        fun _ ->
+            Seq.Cons(
+                (Mnist.get img n, (Mnist.get labels n).(0)),
+                mnist_seq (n - 1) img labels
+            )
+    )
 
 (*Todo : test the above function.*)
 

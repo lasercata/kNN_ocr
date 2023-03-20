@@ -35,3 +35,15 @@ test_func "Seq_test.most_frequent" (
     Seq_test.most_frequent s1 = 1
 );;
 
+(*Test knn.ml functions*)
+Printf.printf "\nTesting Knn functions :\n";;
+
+Printf.printf "Knn.mnist_seq :\n";;
+let train_images = Mnist.open_in "train-images-idx3-ubyte" in
+let train_labels = Mnist.open_in "train-labels-idx1-ubyte" in
+Seq.iter (
+    fun s -> let img, lb = s in Printf.printf "\tlabel : %d\n" lb
+)
+(
+    Knn.mnist_seq 10 train_images train_labels
+);;

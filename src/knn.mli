@@ -7,6 +7,8 @@ type data = float array
     Dans la partie avec arbre k-d, ce sera un arbre dimensionnel. *)
 type 'label t
 
+val mnist_seq : int -> Mnist.idx -> Mnist.idx -> (int array * int) Seq.t
+
 (** Initialisation des données d'entrainement *)
 val init : (data * 'label) Seq.t -> 'label t
 
