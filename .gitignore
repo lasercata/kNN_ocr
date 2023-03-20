@@ -1,6 +1,7 @@
 src/main
 src/print_mnist
 src/test
+src/.depend
 *.o
 *.cmi
 *.cmx
