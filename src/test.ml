@@ -24,15 +24,27 @@ test_func "Seq_test.length" (
     List.length l2 = Seq_test.length s2 &&
     List.length l3 = Seq_test.length s3
 );;
-test_func "Seq_test.count_item" (
-    Seq_test.count_item 1 s1 = 5 &&
-    Seq_test.count_item 42 s1 = 0 &&
-    Seq_test.count_item 8 s1 = 2 &&
-    Seq_test.count_item 3 s1 = 1 &&
-    Seq_test.count_item 0 s2 = 0
+test_func "Seq_test.get\t" (
+    Seq_test.get s1 0 = 1 &&
+    Seq_test.get s1 3 = 4 &&
+    Seq_test.get s3 2 = 3
 );;
-test_func "Seq_test.most_frequent" (
-    Seq_test.most_frequent s1 = 1
+Printf.printf "\ttesting Seq_test.iteri \t\t:\n";;
+Seq_test.iteri (
+    fun i s -> Printf.printf "\t\t%d: %d\n" i s
+) s1;;
+
+(*Testing Knn*)
+Printf.printf "\nTesting Knn functions :\n";;
+test_func "Knn.count_item\t" (
+    Knn.count_item 1 l1 = 5 &&
+    Knn.count_item 42 l1 = 0 &&
+    Knn.count_item 8 l1 = 2 &&
+    Knn.count_item 3 l1 = 1 &&
+    Knn.count_item 0 l2 = 0
+);;
+test_func "Knn.most_frequent" (
+    Knn.most_frequent l1 = 1
 );;
 
 (*Test knn.ml functions*)

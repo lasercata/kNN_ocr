@@ -8,56 +8,49 @@ type 'a node =
 and 'a t = unit -> 'a node;;*)
 
 
-(*Function that print a 'a Seq.t sequence.*)
 let rec print_seq (s : int Seq.t) : unit =
+    (*Print a 'a Seq.t sequence.*)
+
     match s() with
     | Nil -> Printf.printf "\b\b  \b\b\n"
     | Cons(a, b) -> Printf.printf "%d, " a; print_seq b;;
 
-(*Function that return the length of a sequence*)
 let rec length (s : 'a Seq.t) : int =
+    (*Return the length of a sequence*)
+
     match s() with
     | Seq.Nil -> 0
     | Seq.Cons(_, s') -> 1 + length s';;
 
-(*Function that convert a list to a sequence*)
 let rec seq_of_list (l : 'a list) : 'a Seq.t =
+    (*Convert a list to a sequence*)
+
     match l with
     | [] -> (fun _ -> Seq.Nil)
     | t::q -> (fun _ -> Seq.Cons(t, seq_of_list q));;
 
+let rec get (s : 'a Seq.t) (i : int) : 'a =
+    (*Return the element number i in the sequence, as for an array.
+     * Raise Invalid_argument if i is outside of the range 0 Seq_test.length s - 1*)
 
-(*Q5*)
-(*Function that count the number of occurrences of an element in a sequence.*)
-let rec count_item (i : 'a) (s : 'a Seq.t) : int =
     match s() with
-    | Seq.Nil -> 0
-    | Seq.Cons(a, s') -> (if a = i then 1 else 0) + count_item i s';;
+    | Seq.Nil -> raise (Invalid_argument "index too large")
+    | Seq.Cons(h, t) ->
+        if i = 0 then h
+        else get t (i - 1);;
 
-(*Q6*)
-(*Function that calculate an element of s (non empty) such that the frequency of this element is maximal*)
-let most_frequent (s : int Seq.t) : int =
-    let len = length s in
+let iteri (f : int -> 'a -> unit) (s : 'a Seq.t) : unit =
+    (*Same as List.iteri, but for sequences.*)
 
-    if len = 0 then
-        failwith "The sequence should contain at least one element !";
+    let rec aux (s' : 'a Seq.t) (i : int) : unit =
+        match s'() with
+        | Seq.Nil -> ()
+        | Seq.Cons(h, t) ->
+            f i h;
+            aux t (i + 1)
+    in
+    aux s 0;;
 
-    (*Adding elements of the sequence in a table, in the form (i, count_item i)*)
-    let table = Hashtbl.create (len / 2) in
-    Seq.iter (fun x -> Hashtbl.add table x (count_item x s)) s;
-
-    (*Calculate the maximum*)
-    let imax = ref 0 in
-    let mx = ref 0 in
-    Hashtbl.iter (
-        fun i n ->
-            if n > !mx then begin
-                mx := n;
-                imax := i
-            end
-    ) table;
-
-    !imax;;
 
 (*Q2 : s = 17 -> 42 -> Nil*)
 let s = (fun () -> (Seq.Cons (17, (fun () -> (Seq.Cons (42, (fun () -> Seq.Nil)))))));;
@@ -76,8 +69,8 @@ let all_int = fun _ -> seq_next_node 0;;
 
 
 (*Q4*)
-(*Function that return a -> a + 1 -> ... -> b - 1 -> Nil*)
 let python_range (a : int) (b : int) : int Seq.t =
+    (*Return a -> a + 1 -> ... -> b - 1 -> Nil*)
     let rec rng_node (i : int) : int Seq.node =
         match i with
         | i when i >= b -> Nil
