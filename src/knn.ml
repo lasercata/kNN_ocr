@@ -55,6 +55,20 @@ let euclidean_dist (u : float array) (v : float array) : float =
     done;
     sqrt !sum;;
 
+let euclidean_dist_2 (u : int array) (v : int array) : int =
+    (*Calculate the square of the euclidean distance between u and v.*)
+
+    let len = Array.length u in
+
+    if len <> Array.length v then
+        failwith "The vectors does not have the same dimension !";
+
+    let sum = ref 0 in
+    for k = 0 to len - 1 do
+        sum := !sum + (u.(k) - v.(k)) * (u.(k) - v.(k))
+    done;
+    !sum;;
+
 let euclidean_dist_int (u : int array) (v : int array) : float =
     (*Convert u and v to float arrays and use the above function.*)
 
@@ -112,17 +126,6 @@ let init (seq : (data * 'label) Seq.t) : 'label t =
   seq
 
 
-let rec labels_of_prioqueue (f : int PrioQueue.t) (seq : (data * 'label) Seq.t) : 'label Seq.t =
-    if PrioQueue.size f = 0 then
-        fun _ -> Seq.Nil
-    else
-        let _, lb = Seq_test.get seq (PrioQueue.top f) in
-        (fun _ -> Seq.Cons(
-            lb,
-            labels_of_prioqueue (PrioQueue.remove_top f) seq
-        ));;
-
-
 (*let classify (seq : 'label t) (k : int) (x : data) : 'label =*)
 let classify (seq : (int array * int) Seq.t) (k : int) (x : data) : 'label =
     (*
@@ -138,11 +141,11 @@ let classify (seq : (int array * int) Seq.t) (k : int) (x : data) : 'label =
         fun a b ->
             let x1, _ = Seq_test.get seq a
             and x2, _ = Seq_test.get seq b in
-            let d = euclidean_dist_int x1 x2 in
+            let d = euclidean_dist_2 x1 x2 in
 
-            if d <= 1e-16 then
+            if d = 0 then (*<= 1e-16 then*)
                 0
-            else if d > 0. then
+            else if d > 0 then
                 1
             else
                 -1
@@ -158,12 +161,11 @@ let classify (seq : (int array * int) Seq.t) (k : int) (x : data) : 'label =
         fun i s ->
             let xi, _ = s
             and x_max, _ = Seq_test.get seq (PrioQueue.top !f) in
-            if i >= k && euclidean_dist_int x xi < (euclidean_dist_int x x_max) then
+            if i >= k && euclidean_dist_2 x xi < (euclidean_dist_2 x x_max) then
                 f := PrioQueue.change_root !f i
     ) seq;
 
-    (*create the list C = {C_i | i \in f} (list of labels)*)
+    (*Creation of the list C = {C_i | i \in f} (list of labels)*)
     let c = List.map (fun i -> let _, l = (Seq_test.get seq i) in l) (PrioQueue.to_unsorted_list !f) in
     most_frequent c;;
 
-    (*--Todo: the function most_frequent should take a list and not a sequence ...*)
