@@ -56,7 +56,10 @@ let euclidean_dist (u : float array) (v : float array) : float =
     sqrt !sum;;
 
 let euclidean_dist_2 (u : int array) (v : int array) : int =
-    (*Calculate the square of the euclidean distance between u and v.*)
+    (*
+     * Calculate the square of the euclidean distance between u and v,
+     * to avoid to deal with floats.
+     *)
 
     let len = Array.length u in
 
@@ -145,7 +148,7 @@ let classify (seq : (int array * int) Seq.t) (k : int) (x : data) : 'label =
 
             if d = 0 then (*<= 1e-16 then*)
                 0
-            else if d > 0 then
+            else if d < 0 then
                 1
             else
                 -1

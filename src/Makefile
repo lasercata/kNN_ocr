@@ -8,7 +8,7 @@ test: mnist.cmx prioQueue.cmx seq_test.cmx knn.cmx test.cmx
 print_mnist: mnist.cmx print_mnist.cmx
 	ocamlopt -o $@ $^
 
-main: mnist.cmx prioQueue.cmx seq_test.cmx knn.cmx main.cmx
+main: mnist.cmx prioQueue.cmx seq_test.cmx knn.cmx test.cmx main.cmx
 	ocamlopt -o $@ $^
 
 clean:
