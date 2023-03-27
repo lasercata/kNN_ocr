@@ -160,12 +160,16 @@ let classify (seq : (int array * int) Seq.t) (k : int) (x : data) : 'label =
     done;
 
     (*Insertion of the remaining data*)
+    let mx, _ = Seq_test.get seq (PrioQueue.top !f) in
+    let x_max = ref mx in
+
     Seq_test.iteri (
         fun i s ->
-            let xi, _ = s
-            and x_max, _ = Seq_test.get seq (PrioQueue.top !f) in
-            if i >= k && euclidean_dist_2 x xi < (euclidean_dist_2 x x_max) then
-                f := PrioQueue.change_root !f i
+            let xi, _ = s in
+            if i >= k && (euclidean_dist_2 x xi) < (euclidean_dist_2 x !x_max) then begin
+                f := PrioQueue.change_root !f i;
+                x_max := xi
+            end
     ) seq;
 
     (*Creation of the list C = {C_i | i \in f} (list of labels)*)

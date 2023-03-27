@@ -1,5 +1,9 @@
 let print_image (image : int array) : unit =
-    (*Print the image in ascii art using the file "grayscale_70_levels.txt".*)
+    (*
+     * Print the image in ascii art using the file "grayscale_70_levels.txt".
+     *
+     * - img : linearised array representing a 28 x 28 pixels image in greyscale.
+     *)
 
     let f = open_in "grayscale_70_levels.txt" in
     let scale = input_line f in
@@ -26,6 +30,31 @@ let print_image_small (image : int array) : unit =
     close_in f;;
 
 
+(*
+let display_image (img : int array) : unit =
+    (*
+     * Display the image img in a graphics window.
+     *
+     * - img : the 28 x 28 pixels linearised image.
+     *)
+
+    (*Convert to a Graphics.color array array*)
+    let img_g = Array.make_matrix 28 28 (Graphics.rgb 0 0 0) in
+    for i = 0 to 27 do
+        for j = 0 to 27 do
+            let c = img.(28*i + j) in
+            img_g.(i).(j) = Graphics.rgb c c c
+        done
+    done;
+
+    (*Display it*)
+    Graphics.open_graph "";
+    Graphics.resize_window (Array.length img_g.(0)) (Array.length img_g);
+    Graphics.draw_image (Graphics.make_image img_g) 0 0;
+    Graphics.loop_at_exit [Graphics.Key_pressed] (fun _ -> Graphics.close_graph (); raise Exit);;
+*)
+
+
 let print_image_and_label (train : bool) (index : int) : unit =
     (*
      * Print the `index`-th image either from the training set (if train is
@@ -33,7 +62,7 @@ let print_image_and_label (train : bool) (index : int) : unit =
      *
      * - train : A bool indicating if print from the training set (if true),
      *           or from the test set ;
-     * - index : the index of the image to print.
+     * - index : The index of the image to print ;
      *)
 
     let fn_img = if train then

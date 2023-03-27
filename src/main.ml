@@ -112,7 +112,7 @@ let main (argv : string array) : unit =
             | "-p" | "--print" -> begin
                 if !i + 1 < argc - 1 then begin
                     print_usage argv.(0);
-                    Printf.printf "%s: error: the argument '-p' needs INDEX\n" proj_name;
+                    Printf.printf "%s: error: the argument '%s' needs INDEX\n" proj_name argv.(!i);
                     exit := true;
                     continue := false;
                 end
@@ -120,13 +120,13 @@ let main (argv : string array) : unit =
                     match int_of_string_opt argv.(!i + 1) with
                     | None -> begin
                         print_usage argv.(0);
-                        Printf.printf "%s: error: unrecognized argument : '%s'\n" proj_name argv.(!i + 1);
+                        Printf.printf "%s: error: unrecognized argument for '%s' : '%s'\n" proj_name argv.(!i) argv.(!i + 1);
                         continue := false;
                         exit := true
                     end
                     | Some n when n < 0 -> begin
                         print_usage argv.(0);
-                        Printf.printf "%s: error: invalid argument (should be positive) : '%s'\n" proj_name argv.(!i + 1);
+                        Printf.printf "%s: error: invalid argument (should be positive) for '%s' : '%s'\n" proj_name argv.(!i) argv.(!i + 1);
                         continue := false;
                         exit :=  true
                     end
