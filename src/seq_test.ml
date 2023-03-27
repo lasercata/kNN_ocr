@@ -15,6 +15,7 @@ let rec print_seq (s : int Seq.t) : unit =
     | Nil -> Printf.printf "\b\b  \b\b\n"
     | Cons(a, b) -> Printf.printf "%d, " a; print_seq b;;
 
+
 let rec length (s : 'a Seq.t) : int =
     (*Return the length of a sequence*)
 
@@ -22,12 +23,14 @@ let rec length (s : 'a Seq.t) : int =
     | Seq.Nil -> 0
     | Seq.Cons(_, s') -> 1 + length s';;
 
+
 let rec seq_of_list (l : 'a list) : 'a Seq.t =
     (*Convert a list to a sequence*)
 
     match l with
     | [] -> (fun _ -> Seq.Nil)
     | t::q -> (fun _ -> Seq.Cons(t, seq_of_list q));;
+
 
 let rec get (s : 'a Seq.t) (i : int) : 'a =
     (*Return the element number i in the sequence, as for an array.
@@ -38,6 +41,13 @@ let rec get (s : 'a Seq.t) (i : int) : 'a =
     | Seq.Cons(h, t) ->
         if i = 0 then h
         else get t (i - 1);;
+
+
+let array_of_seq (s : 'a Seq.t) : 'a array =
+    (*Convert a sequence to an array.*)
+
+    Array.init (length s) (get s);;
+
 
 let iteri (f : int -> 'a -> unit) (s : 'a Seq.t) : unit =
     (*Same as List.iteri, but for sequences.*)
