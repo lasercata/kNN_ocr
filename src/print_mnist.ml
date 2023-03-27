@@ -1,4 +1,6 @@
 let print_image (image : int array) : unit =
+    (*Print the image in ascii art using the file "grayscale_70_levels.txt".*)
+
     let f = open_in "grayscale_70_levels.txt" in
     let scale = input_line f in
     for k = 0 to (Array.length image) - 1 do
@@ -7,16 +9,57 @@ let print_image (image : int array) : unit =
     done;
     close_in f;;
 
-let main (_ : unit) : unit =
-    Printf.printf "here (in print_mnist.ml)\n";
-    if Array.length (Sys.argv) <> 2 then failwith "Exactly one argument is needed (the index of the image).";
-    let train_images = Mnist.open_in "train-images-idx3-ubyte" in
-    let train_labels = Mnist.open_in "train-labels-idx1-ubyte" in
-    let index = int_of_string Sys.argv.(1) in
-    let image = Mnist.get train_images index in
-    let number = (Mnist.get train_labels index).(0) in
-    print_image image;
-    Printf.printf "Label: %d\n" number
 
-let _ : unit =
-    main ()
+let print_image_small (image : int array) : unit =
+    (*Print the image in ascii art using the file "grayscale_70_levels.txt",
+     * but only in 20x20 pixels.
+     *)
+
+    let f = open_in "grayscale_70_levels.txt" in
+    let scale = input_line f in
+    for i = 4 to 24 do
+        for j = 4 to 24 do
+            Printf.printf "%c" (scale.[(String.length scale - 1) * (256 - image.(i*28 + j)) / 256]);
+        done;
+        print_newline ()
+    done;
+    close_in f;;
+
+
+let print_image_and_label (train : bool) (index : int) : unit =
+    (*
+     * Print the `index`-th image either from the training set (if train is
+     * true) or the test set.
+     *
+     * - train : A bool indicating if print from the training set (if true),
+     *           or from the test set ;
+     * - index : the index of the image to print.
+     *)
+
+    let fn_img = if train then
+        "train-images-idx3-ubyte"
+    else
+        "t10-images-idx3-ubyte"
+
+    and fn_lb = if train then
+        "train-labels-idx1-ubyte"
+    else
+        "t10-labels-idx1-ubyte"
+    in
+
+    let images = Mnist.open_in fn_img
+    and labels = Mnist.open_in fn_lb in
+
+    let img = Mnist.get images index
+    and lb = (Mnist.get labels index).(0) in
+
+    print_image_small img;
+    Printf.printf "\nLabel: %d\n" lb;;
+
+
+let main (_ : unit) : unit =
+    if Array.length (Sys.argv) <> 2 then failwith "Exactly one argument is needed (the index of the image).";
+    print_image_and_label true (int_of_string Sys.argv.(1))
+
+(*let _ : unit =
+     main ()*)

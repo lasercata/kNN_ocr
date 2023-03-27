@@ -48,15 +48,17 @@ let print_help (argv0 : string) =
     Printf.printf "\nRecognize images from the MNIST data base.\n";
 
     Printf.printf "\nPositional arguments :\n";
-    Printf.printf "    TRAIN_NB         The number of train images\n";
-    Printf.printf "    TEST_NB          The number of test images\n";
-    Printf.printf "    K                The kNN parameter\n";
+    Printf.printf "    TRAIN_NB                 The number of train images\n";
+    Printf.printf "    TEST_NB                  The number of test images\n";
+    Printf.printf "    K                        The kNN parameter\n";
 
     Printf.printf "\nOptional arguments :\n";
-    Printf.printf "    -h, --help       Print this help message and exit\n";
-    Printf.printf "    -v, --verbose    Be more verbose\n";
-    Printf.printf "    -t, --test       Launch tests and exit\n";
-    Printf.printf "    -kd, --kd-tree   Use a kd tree\n";;
+    Printf.printf "    -h, --help               Print this help message and exit\n";
+    Printf.printf "    -v, --verbose            Be more verbose\n";
+    Printf.printf "    -t, --test               Run tests and exit (ignore positional arguments)\n";
+    Printf.printf "    -kd, --kd-tree           Use a kd tree\n";
+    Printf.printf "    -p INDEX, --print INDEX  Print the image at position INDEX and exit (ignore\n";
+    Printf.printf "                             positional arguments)\n";;
 
 
 let main (argv : string array) : unit =
@@ -73,6 +75,7 @@ let main (argv : string array) : unit =
     and verbose = ref false
     and tests = ref false
     and kd_tree = ref false
+    and print_index = ref (-1)
 
     and exit = ref false
     and read_last_index = ref 0 in (*Keep index of last assignation for train_nb, test_nb, and k.*)
@@ -105,6 +108,33 @@ let main (argv : string array) : unit =
             | "-kd" | "--kd-tree" -> begin
                 kd_tree := true;
                 incr i
+            end
+            | "-p" | "--print" -> begin
+                if !i + 1 < argc - 1 then begin
+                    print_usage argv.(0);
+                    Printf.printf "%s: error: the argument '-p' needs INDEX\n" proj_name;
+                    exit := true;
+                    continue := false;
+                end
+                else begin
+                    match int_of_string_opt argv.(!i + 1) with
+                    | None -> begin
+                        print_usage argv.(0);
+                        Printf.printf "%s: error: unrecognized argument : '%s'\n" proj_name argv.(!i + 1);
+                        continue := false;
+                        exit := true
+                    end
+                    | Some n when n < 0 -> begin
+                        print_usage argv.(0);
+                        Printf.printf "%s: error: invalid argument (should be positive) : '%s'\n" proj_name argv.(!i + 1);
+                        continue := false;
+                        exit :=  true
+                    end
+                    | Some n -> begin
+                        print_index := n;
+                        continue := false (*ignore other arguments*)
+                    end
+                end
             end
             | s when s.[0] = '-' -> begin (*Wrong argument*)
                 Printf.printf "%s: error: unrecognized argument : '%s'\n" proj_name s;
@@ -180,7 +210,7 @@ let main (argv : string array) : unit =
             | _ -> ()
         done;
 
-        if !train_nb = 0 || !test_nb = 0 || !k = 0 then begin
+        if (!train_nb = -1 || !test_nb = -1 || !k = -1) && not !exit then begin
             print_usage argv.(0);
             Printf.printf "%s: error: the following arguments are requied: TRAIN_NB TEST_NB K\n" proj_name;
             exit := true
@@ -190,9 +220,12 @@ let main (argv : string array) : unit =
         if not !exit && !tests then
             Test.test ()
 
+        else if not !exit && !print_index <> -1 then
+            Print_mnist.print_image_and_label true !print_index
+
         else if not !exit then begin
             if !kd_tree then
-                Printf.printf "Not implemented yet. Ignoring this argument.\n";
+                Printf.printf "Option -kd not implemented yet. Ignoring this argument.\n";
 
             (*TODO: use verbose*)
             let rate = test_classify !train_nb !test_nb !k in
