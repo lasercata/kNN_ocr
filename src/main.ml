@@ -34,7 +34,7 @@ let print_usage (argv0 : string) =
      * -argv0 : the program name.
      *)
 
-    Printf.printf "Usage : %s [-h] [-v] [-t] [-kd] TRAIN_NB TEST_NB K\n" argv0;;
+    Printf.printf "Usage : %s [-h] [-v] [-t] [-p INDEX] [-kd] TRAIN_NB TEST_NB K\n" argv0;;
 
 let print_help (argv0 : string) =
     (*
@@ -147,7 +147,7 @@ let main (argv : string array) : unit =
                     print_usage argv.(0);
                     Printf.printf "%s: error: invalid argument : '%s'\n" proj_name s;
                     continue := false;
-                    exit :=  true
+                    exit := true
                 end
                 | Some n when n <= 0 -> begin
                     print_usage argv.(0);
@@ -210,18 +210,18 @@ let main (argv : string array) : unit =
             | _ -> ()
         done;
 
-        if (!train_nb = -1 || !test_nb = -1 || !k = -1) && not !exit then begin
-            print_usage argv.(0);
-            Printf.printf "%s: error: the following arguments are requied: TRAIN_NB TEST_NB K\n" proj_name;
-            exit := true
-        end;
-
         (*Use arguments*)
         if not !exit && !tests then
             Test.test ()
 
         else if not !exit && !print_index <> -1 then
             Print_mnist.print_image_and_label true !print_index
+
+        else if (!train_nb = -1 || !test_nb = -1 || !k = -1) && not !exit then begin
+            print_usage argv.(0);
+            Printf.printf "%s: error: the following arguments are requied: TRAIN_NB TEST_NB K\n" proj_name;
+            exit := true
+        end
 
         else if not !exit then begin
             if !kd_tree then

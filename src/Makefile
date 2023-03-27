@@ -1,6 +1,6 @@
 .PHONY: depend all clean
 
-all: depend print_mnist main
+all: depend main
 
 main: mnist.cmx print_mnist.cmx prioQueue.cmx seq_test.cmx knn.cmx test.cmx main.cmx
 	ocamlopt -o $@ $^
