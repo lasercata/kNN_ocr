@@ -1,30 +1,49 @@
-let test_classify (n : int) (m : int) (k : int) : float =
+let test_classify (n : int) (m : int) (k : int) (make_conf : bool) : float * (int array array) =
     (*
-     * Run Knn.classify with n training images, m tests, and return the success rate.
+     * Run Knn.classify with n training images, m tests, and return a couple
+     * containing the success rate and the confusion matrix.
      *
-     * - n       : the number of training images ;
-     * - m       : the number of testing images ;
-     * - k       : the parameter of kNN.
+     * - n         : The number of training images ;
+     * - m         : The number of testing images ;
+     * - k         : The parameter of kNN ;
+     * - make_conf : If true, fill the confusion matrix. Otherwise, it is
+     *               full of zeros.
      *)
 
-    let train_images = Mnist.open_in "train-images-idx3-ubyte" in
-    let train_labels = Mnist.open_in "train-labels-idx1-ubyte" in
-    let test_images = Mnist.open_in "t10k-images-idx3-ubyte" in
-    let test_labels = Mnist.open_in "t10k-labels-idx1-ubyte" in
+    let train_images = Mnist.open_in "train-images-idx3-ubyte"
+    and train_labels = Mnist.open_in "train-labels-idx1-ubyte"
+    and test_images = Mnist.open_in "t10k-images-idx3-ubyte"
+    and test_labels = Mnist.open_in "t10k-labels-idx1-ubyte" in
 
-    let train_seq = Knn.mnist_seq n train_images train_labels in
-    let test_seq = Knn.mnist_seq m test_images test_labels in
-    let correct_count = ref 0 in
+    let train_seq = Knn.mnist_seq n train_images train_labels
+    and test_seq = Knn.mnist_seq m test_images test_labels
+    and confusion = Array.make_matrix 10 10 0
+    and correct_count = ref 0 in
 
     Seq.iter (
         fun s ->
             let img, lb = s in
             let guessed_lb = Knn.classify train_seq k img in
+            if make_conf then
+                confusion.(lb).(guessed_lb) <- confusion.(lb).(guessed_lb) + 1;
             if lb = guessed_lb then incr correct_count
     )
     test_seq;
     
-    (float_of_int !correct_count) *. 100. /. (float_of_int m);;
+    let rate = (float_of_int !correct_count) *. 100. /. (float_of_int m) in
+    (rate, confusion);;
+
+let print_conf (m : int array array) : unit =
+    (*Prints the confusion matrix*)
+
+    Printf.printf "\nThe confusion matrix :\n";
+
+    for i = 0 to Array.length m - 1 do
+        for j = 0 to Array.length m.(0) - 1 do
+            Printf.printf "%02d " m.(i).(j)
+        done;
+        Printf.printf "\n"
+    done;;
 
 
 let print_usage (argv0 : string) =
@@ -54,7 +73,7 @@ let print_help (argv0 : string) =
 
     Printf.printf "\nOptional arguments :\n";
     Printf.printf "    -h, --help               Print this help message and exit\n";
-    Printf.printf "    -v, --verbose            Be more verbose\n";
+    Printf.printf "    -v, --verbose            Show confusion matrix\n";
     Printf.printf "    -t, --test               Run tests and exit (ignore positional arguments)\n";
     Printf.printf "    -kd, --kd-tree           Use a kd tree\n";
     Printf.printf "    -p INDEX, --print INDEX  Print the image at position INDEX and exit (ignore\n";
@@ -228,8 +247,10 @@ let main (argv : string array) : unit =
                 Printf.printf "Option -kd not implemented yet. Ignoring this argument.\n";
 
             (*TODO: use verbose*)
-            let rate = test_classify !train_nb !test_nb !k in
-            Printf.printf "Success rate : %f%s\n" rate "%"
+            let rate, confusion = test_classify !train_nb !test_nb !k !verbose in
+            Printf.printf "Success rate : %.03f%s\n" rate "%";
+            if !verbose then
+                print_conf confusion
         end
     end;;
 
