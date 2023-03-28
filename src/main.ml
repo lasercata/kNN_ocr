@@ -33,14 +33,47 @@ let test_classify (n : int) (m : int) (k : int) (make_conf : bool) : float * (in
     let rate = (float_of_int !correct_count) *. 100. /. (float_of_int m) in
     (rate, confusion);;
 
+
+let arr_max (arr : int array array) : int =
+    (*Return the number of digits in the longest int from `arr`.*)
+
+    let mx = ref 0 in
+    for i = 0 to Array.length arr - 1 do
+        for j = 0 to Array.length arr - 1 do
+            if arr.(i).(j) > !mx then
+                mx := arr.(i).(j)
+        done
+    done;
+
+    String.length (string_of_int !mx);;
+
 let print_conf (m : int array array) : unit =
     (*Prints the confusion matrix*)
 
-    Printf.printf "\nThe confusion matrix :\n";
+    let n = arr_max m in
+
+    Printf.printf "\nThe confusion matrix :\n     ";
+
+    for k = 0 to Array.length m - 1 do
+        Printf.printf "%d%*s" (k + 1) n ""
+    done;
+
+    Printf.printf "\n   +";
+
+    for k = 0 to (Array.length m) * (n + 1) do
+        Printf.printf "-";
+    done;
+
+    print_newline ();
 
     for i = 0 to Array.length m - 1 do
+        if i + 1 < 10 then
+            Printf.printf " %d | " (i + 1)
+        else
+            Printf.printf "%d | " (i + 1);
+
         for j = 0 to Array.length m.(0) - 1 do
-            Printf.printf "%02d " m.(i).(j)
+            Printf.printf "%*d " n m.(i).(j)
         done;
         Printf.printf "\n"
     done;;
@@ -247,10 +280,13 @@ let main (argv : string array) : unit =
                 Printf.printf "Option -kd not implemented yet. Ignoring this argument.\n";
 
             (*TODO: use verbose*)
+            let t = Sys.time () in
             let rate, confusion = test_classify !train_nb !test_nb !k !verbose in
             Printf.printf "Success rate : %.03f%s\n" rate "%";
-            if !verbose then
-                print_conf confusion
+            if !verbose then begin
+                print_conf confusion;
+                Printf.printf "\nTime elpased : %fs.\n" (Sys.time () -. t)
+            end
         end
     end;;
 
