@@ -106,7 +106,7 @@ let print_help (argv0 : string) =
 
     Printf.printf "\nOptional arguments :\n";
     Printf.printf "    -h, --help               Print this help message and exit\n";
-    Printf.printf "    -v, --verbose            Show confusion matrix\n";
+    Printf.printf "    -v, --verbose            Show confusion matrix and elapsed time\n";
     Printf.printf "    -t, --test               Run tests and exit (ignore positional arguments)\n";
     Printf.printf "    -kd, --kd-tree           Use a kd tree\n";
     Printf.printf "    -p INDEX, --print INDEX  Print the image at position INDEX and exit (ignore\n";
