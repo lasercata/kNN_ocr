@@ -1,39 +1,3 @@
-let test_classify (n : int) (m : int) (k : int) (make_conf : bool) : float * (int array array) =
-    (*
-     * Run Knn.classify with n training images, m tests, and return a couple
-     * containing the success rate and the confusion matrix.
-     *
-     * - n         : The number of training images ;
-     * - m         : The number of testing images ;
-     * - k         : The parameter of kNN ;
-     * - make_conf : If true, fill the confusion matrix. Otherwise, it is
-     *               full of zeros.
-     *)
-
-    let train_images = Mnist.open_in "train-images-idx3-ubyte"
-    and train_labels = Mnist.open_in "train-labels-idx1-ubyte"
-    and test_images = Mnist.open_in "t10k-images-idx3-ubyte"
-    and test_labels = Mnist.open_in "t10k-labels-idx1-ubyte" in
-
-    let train_seq = Knn.mnist_seq n train_images train_labels
-    and test_seq = Knn.mnist_seq m test_images test_labels
-    and confusion = Array.make_matrix 10 10 0
-    and correct_count = ref 0 in
-
-    Seq.iter (
-        fun s ->
-            let img, lb = s in
-            let guessed_lb = Knn.classify train_seq k img in
-            if make_conf then
-                confusion.(lb).(guessed_lb) <- confusion.(lb).(guessed_lb) + 1;
-            if lb = guessed_lb then incr correct_count
-    )
-    test_seq;
-    
-    let rate = (float_of_int !correct_count) *. 100. /. (float_of_int m) in
-    (rate, confusion);;
-
-
 let arr_max (arr : int array array) : int =
     (*Return the number of digits in the longest int from `arr`.*)
 
@@ -48,7 +12,11 @@ let arr_max (arr : int array array) : int =
     String.length (string_of_int !mx);;
 
 let print_conf (m : int array array) : unit =
-    (*Prints the confusion matrix*)
+    (*
+     * Prints the confusion matrix.
+     * It automatically detect the size of the integers in it and take
+     * a good shape.
+     *)
 
     let n = arr_max m in
 
@@ -83,16 +51,16 @@ let print_usage (argv0 : string) =
     (*
      * Print the basic help for the command line.
      *
-     * -argv0 : the program name.
+     * - argv0 : the program name.
      *)
 
-    Printf.printf "Usage : %s [-h] [-v] [-t] [-p INDEX] [-kd] TRAIN_NB TEST_NB K\n" argv0;;
+    Printf.printf "Usage : %s [-h] [-v] [-t] [-p INDEX] [-b] [-d DIST] [-kd] TRAIN_NB TEST_NB K\n" argv0;;
 
 let print_help (argv0 : string) =
     (*
      * Print the help message for the command line parser.
      *
-     * -argv0 : the program name.
+     * - argv0 : the program name.
      *)
 
     print_usage argv0;
@@ -100,17 +68,23 @@ let print_help (argv0 : string) =
     Printf.printf "\nRecognize images from the MNIST data base.\n";
 
     Printf.printf "\nPositional arguments :\n";
-    Printf.printf "    TRAIN_NB                 The number of train images\n";
-    Printf.printf "    TEST_NB                  The number of test images\n";
-    Printf.printf "    K                        The kNN parameter\n";
+    Printf.printf "    TRAIN_NB                  The number of train images\n";
+    Printf.printf "    TEST_NB                   The number of test images\n";
+    Printf.printf "    K                         The kNN parameter\n";
 
     Printf.printf "\nOptional arguments :\n";
-    Printf.printf "    -h, --help               Print this help message and exit\n";
-    Printf.printf "    -v, --verbose            Show confusion matrix and elapsed time\n";
-    Printf.printf "    -t, --test               Run tests and exit (ignore positional arguments)\n";
-    Printf.printf "    -kd, --kd-tree           Use a kd tree\n";
-    Printf.printf "    -p INDEX, --print INDEX  Print the image at position INDEX and exit (ignore\n";
-    Printf.printf "                             positional arguments)\n";;
+    Printf.printf "    -h, --help                Print this help message and exit\n";
+    Printf.printf "    -v, --verbose             Show confusion matrix and elapsed time\n";
+    Printf.printf "    -t, --test                Run tests and exit (ignore positional arguments)\n";
+    Printf.printf "    -kd, --kd-tree            Use a kd tree\n";
+    Printf.printf "    -b, --binarize            Preprocess the image by keeping only two colors\n";
+    Printf.printf "    -d DIST, --distance DIST  Give the used distance. Possible values are :\n";
+    Printf.printf "                                  - 0 : the square of the euclidean distance (default) ;\n";
+    Printf.printf "                                  - 1 : same, but only in the 20 x 20 pixels\n";
+    Printf.printf "                                        center of the image ;\n";
+    Printf.printf "                                  - 2 : binarize image before applying the distance.\n";
+    Printf.printf "    -p INDEX, --print INDEX   Print the image at position INDEX and exit (ignore\n";
+    Printf.printf "                              positional arguments)\n";;
 
 
 let main (argv : string array) : unit =
@@ -127,6 +101,8 @@ let main (argv : string array) : unit =
     and verbose = ref false
     and tests = ref false
     and kd_tree = ref false
+    and bin = ref false
+    and d = ref 0
     and print_index = ref (-1)
 
     and exit = ref false
@@ -161,8 +137,39 @@ let main (argv : string array) : unit =
                 kd_tree := true;
                 incr i
             end
+            | "-b" | "--binarize" -> begin
+                bin := true;
+                incr i
+            end
+            | "-d" | "--distance" -> begin
+                if !i + 1 > argc - 1 then begin
+                    print_usage argv.(0);
+                    Printf.printf "%s: error: the argument '%s' needs DIST\n" proj_name argv.(!i);
+                    exit := true;
+                    continue := false;
+                end
+                else begin
+                    match int_of_string_opt argv.(!i + 1) with
+                    | None -> begin
+                        print_usage argv.(0);
+                        Printf.printf "%s: error: unrecognized argument for '%s' : '%s'\n" proj_name argv.(!i) argv.(!i + 1);
+                        continue := false;
+                        exit := true
+                    end
+                    | Some n when n < 0 || n > 3 -> begin
+                        print_usage argv.(0);
+                        Printf.printf "%s: error: invalid argument (should be 0, 1, or 2) for '%s' : '%s'\n" proj_name argv.(!i) argv.(!i + 1);
+                        continue := false;
+                        exit :=  true
+                    end
+                    | Some n -> begin
+                        d := n;
+                        i := !i + 2
+                    end
+                end
+            end
             | "-p" | "--print" -> begin
-                if !i + 1 < argc - 1 then begin
+                if !i + 1 > argc - 1 then begin
                     print_usage argv.(0);
                     Printf.printf "%s: error: the argument '%s' needs INDEX\n" proj_name argv.(!i);
                     exit := true;
@@ -279,13 +286,12 @@ let main (argv : string array) : unit =
             if !kd_tree then
                 Printf.printf "Option -kd not implemented yet. Ignoring this argument.\n";
 
-            (*TODO: use verbose*)
             let t = Sys.time () in
-            let rate, confusion = test_classify !train_nb !test_nb !k !verbose in
+            let rate, confusion = Knn.test_classify !train_nb !test_nb !k !d !verbose !bin in
             Printf.printf "Success rate : %.03f%s\n" rate "%";
             if !verbose then begin
                 print_conf confusion;
-                Printf.printf "\nTime elpased : %fs.\n" (Sys.time () -. t)
+                Printf.printf "\nTime elpased : %.03fs.\n" (Sys.time () -. t)
             end
         end
     end;;
