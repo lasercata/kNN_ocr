@@ -18,6 +18,6 @@ val init : (data * 'label) Seq.t -> 'label t
 
 (** Classification d'une donnée *)
 (*val classify : 'label t -> int -> data -> 'label*)
-val classify : (data * int) Seq.t -> int -> data -> (data -> data -> int) -> int
+val classify : (data * int) Seq.t -> int -> data -> (data -> data -> float) -> int
 
 val test_classify : int -> int -> int -> int -> bool -> bool -> float * (int array array)

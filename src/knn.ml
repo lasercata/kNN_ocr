@@ -69,10 +69,10 @@ let euclidean_dist (u : float array) (v : float array) : float =
     done;
     sqrt !sum;;
 
-let euclidean_dist_2 (u : int array) (v : int array) : int =
+let euclidean_dist_2 (u : int array) (v : int array) : float =
     (*
      * Calculate the square of the euclidean distance between u and v,
-     * to avoid to deal with floats.
+     * to avoid to deal with sqrt.
      *)
 
     let len = Array.length u in
@@ -85,7 +85,7 @@ let euclidean_dist_2 (u : int array) (v : int array) : int =
         let x = u.(k) - v.(k) in
         sum := !sum + x * x
     done;
-    !sum;;
+    float_of_int !sum;;
 
 let dist_bin (u : int array) (v : int array) : int =
     (*
@@ -106,7 +106,29 @@ let dist_bin (u : int array) (v : int array) : int =
     done;
     !sum;;
 
-let dist_unpad (u : int array) (v : int array) : int =
+let dist_jaccard (u : int array) (v : int array) : float =
+    (*Distance for the binarized image.*)
+
+    let m_10 = ref 0
+    and m_01 = ref 0
+    and m_11 = ref 0 in
+
+    for k = 0 to Array.length u - 1 do
+        let x1 = if u.(k) > 256 / 2 then 1 else 0
+        and x2 = if v.(k) > 256 / 2 then 1 else 0 in
+
+        if x1 = x2 && x1 = 1 then
+            incr m_11
+        else if x1 = 1 then
+            incr m_10
+        else if x2 = 1 then
+            incr m_01
+    done;
+
+    (float_of_int (!m_10 + !m_01)) /. (float_of_int (!m_10 + !m_01 + !m_11));;
+
+
+let dist_unpad (u : int array) (v : int array) : float =
     (*Calculate a distance between u and v. Ignore the padding of the images.*)
 
     let sum = ref 0 in
@@ -116,9 +138,9 @@ let dist_unpad (u : int array) (v : int array) : int =
             sum := !sum + (x * x)
         done
     done;
-    !sum;;
+    float_of_int !sum;;
 
-let dist_test (u : int array) (v : int array) : int =
+let dist_test (u : int array) (v : int array) : float =
     (*Calculate a distance between u and v. Ignore the padding of the images.*)
 
     let sum = ref 0 in
@@ -128,10 +150,10 @@ let dist_test (u : int array) (v : int array) : int =
             sum := !sum + abs(x * x * x * x)
         done
     done;
-    !sum;;
+    float_of_int !sum;;
 
 
-let distances = [|euclidean_dist_2; dist_unpad; dist_bin; dist_test|]
+let distances = [|euclidean_dist_2; dist_unpad; dist_jaccard; dist_test|]
 
 
 (*Q8*)
@@ -202,7 +224,7 @@ let init (seq : (data * 'label) Seq.t) : 'label t =
 
 
 (*let classify (seq : 'label t) (k : int) (x : data) : 'label =*)
-let classify (seq : (int array * int) Seq.t) (k : int) (x : data) (dist : (data -> data -> int)) : 'label =
+let classify (seq : (int array * int) Seq.t) (k : int) (x : data) (dist : (data -> data -> float)) : 'label =
     (*
      * Return the guess of the label of the image x, using kNN algorithm.
      *
@@ -217,32 +239,36 @@ let classify (seq : (int array * int) Seq.t) (k : int) (x : data) (dist : (data 
         fun a b ->
             let _, x1 = a
             and _, x2 = b in
-            let d = x1 - x2 in
+            let d = x1 -. x2 in
 
-            if d = 0 then (*<= 1e-16 then*)
+            if d <= 1e-16 then
                 0
-            else if d < 0 then
+            else if d < 0. then
                 1
             else
                 -1
     )) in
 
     (*Insertion of the first data*)
+    let d_max = ref infinity in
+
     for i = 0 to k - 1 do
-        f := PrioQueue.insert !f (i, let x1, _ = Seq_test.get seq i in dist x1 x)
+        let x1, lb = Seq_test.get seq i in
+        let d = dist x1 x in
+        f := PrioQueue.insert !f (lb, d);
+
+        if d < !d_max then
+            d_max := d
     done;
 
     (*Insertion of the remaining data*)
-    let x_max, _ = Seq_test.get seq (let i, _ = PrioQueue.top !f in i) in
-    let d_max = ref (dist x x_max) in
-
     Seq_test.iteri (
         fun i s ->
-            let xi, _ = s in
+            let xi, lb = s in
             let d = dist x xi in
 
             if i >= k && d < !d_max then begin
-                f := PrioQueue.change_root !f (i, d);
+                f := PrioQueue.change_root !f (lb, d);
                 d_max := d
             end
     ) seq;
@@ -250,8 +276,7 @@ let classify (seq : (int array * int) Seq.t) (k : int) (x : data) (dist : (data 
     (*Creation of the list C = {C_i | i \in f} (list of labels)*)
     let c = List.map (
         fun i ->
-            let j, _ = i in
-            let _, l = (Seq_test.get seq j) in
+            let l, _ = i in
             l
     )
     (
