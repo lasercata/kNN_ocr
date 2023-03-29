@@ -1,5 +1,17 @@
-# kNN OCR
+# kNN_OCR123
 MNIST Optical Character Recognition
+
+```
+ /$$       /$$   /$$ /$$   /$$        /$$$$$$                       /$$    /$$$$$$   /$$$$$$ 
+| $$      | $$$ | $$| $$$ | $$       /$$__  $$                    /$$$$   /$$__  $$ /$$__  $$
+| $$   /$$| $$$$| $$| $$$$| $$      | $$  \ $$  /$$$$$$$  /$$$$$$|_  $$  |__/  \ $$|__/  \ $$
+| $$  /$$/| $$ $$ $$| $$ $$ $$      | $$  | $$ /$$_____/ /$$__  $$ | $$    /$$$$$$/   /$$$$$/
+| $$$$$$/ | $$  $$$$| $$  $$$$      | $$  | $$| $$      | $$  \__/ | $$   /$$____/   |___  $$
+| $$_  $$ | $$\  $$$| $$\  $$$      | $$  | $$| $$      | $$       | $$  | $$       /$$  \ $$
+| $$ \  $$| $$ \  $$| $$ \  $$      |  $$$$$$/|  $$$$$$$| $$      /$$$$$$| $$$$$$$$|  $$$$$$/
+|__/  \__/|__/  \__/|__/  \__//$$$$$$\______/  \_______/|__/     |______/|________/ \______/ 
+                             |______/                                                        
+```
 
 ## Installation
 Download the project, and in the folder `src`, run
@@ -13,8 +25,8 @@ make cleanup
 
 ## Usage
 ```
-$./main -h
-Usage : ./main [-h] [-v] [-t] [-p INDEX] [-b] [-d DIST] [-kd] TRAIN_NB TEST_NB K
+$./kNN_Ocr123 -h
+Usage : ./kNN_Ocr123 [-h] [-v] [-t] [-p INDEX] [-b] [-d DIST] [-kd] TRAIN_NB TEST_NB K
 
 Recognize images from the MNIST data base.
 
@@ -33,7 +45,7 @@ Optional arguments :
                                   - 0 : the square of the euclidean distance (default) ;
                                   - 1 : same, but only in the 20 x 20 pixels
                                         center of the image ;
-                                  - 2 : binarize image before applying the distance.
+                                  - 2 : binarize image and use Jaccard's distance.
     -p INDEX, --print INDEX   Print the image at position INDEX and exit (ignore
                               positional arguments)
 ```

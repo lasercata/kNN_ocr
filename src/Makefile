@@ -1,12 +1,12 @@
 .PHONY: depend all clean
 
-all: depend main
+all: depend kNN_Ocr123
 
-main: mnist.cmx print_mnist.cmx prioQueue.cmx seq_test.cmx knn.cmx test.cmx main.cmx
+kNN_Ocr123: mnist.cmx print_mnist.cmx prioQueue.cmx seq_test.cmx knn.cmx test.cmx main.cmx
 	ocamlopt -o $@ $^
 
 clean:
-	rm -f *.cmi *.cmo *.cmx *.o main
+	rm -f *.cmi *.cmo *.cmx *.o kNN_Ocr123
 
 cleanup:
 	rm -f *.cmi *.cmo *.cmx *.o

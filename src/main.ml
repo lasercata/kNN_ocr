@@ -1,3 +1,27 @@
+let print_time (t_diff : float) : unit =
+    (*Print the time difference in a nice string.*)
+
+    if t_diff < 60. then
+        Printf.printf "\nTime elapsed : %.03fs.\n" t_diff
+
+    else if t_diff /. 60. < 60. then
+        Printf.printf "\nTime elapsed : %dm%.03fs.\n"
+            (int_of_float (t_diff /. 60.))
+            (
+                (float_of_int ((int_of_float t_diff) mod 60))
+                +. (t_diff -. (float_of_int (int_of_float t_diff)))
+            )
+
+    else if t_diff /. 3600. < 24. then
+        Printf.printf "\nTime elapsed : %dh%dm%.03fs.\n"
+            (int_of_float (t_diff /. 3600.))
+            ((int_of_float (t_diff /. 60.)) mod 60)
+            (
+                (float_of_int ((int_of_float t_diff) mod 60))
+                +. (t_diff -. (float_of_int (int_of_float t_diff)))
+            );;
+
+
 let arr_max (arr : int array array) : int =
     (*Return the number of digits in the longest int from `arr`.*)
 
@@ -47,6 +71,12 @@ let print_conf (m : int array array) : unit =
     done;;
 
 
+let print_logo () : unit =
+    (*Print the ASCII art project logo.*)
+
+    print_newline ();
+    Printf.printf " /$$       /$$   /$$ /$$   /$$        /$$$$$$                       /$$    /$$$$$$   /$$$$$$ \n| $$      | $$$ | $$| $$$ | $$       /$$__  $$                    /$$$$   /$$__  $$ /$$__  $$\n| $$   /$$| $$$$| $$| $$$$| $$      | $$  \\ $$  /$$$$$$$  /$$$$$$|_  $$  |__/  \\ $$|__/  \\ $$\n| $$  /$$/| $$ $$ $$| $$ $$ $$      | $$  | $$ /$$_____/ /$$__  $$ | $$    /$$$$$$/   /$$$$$/\n| $$$$$$/ | $$  $$$$| $$  $$$$      | $$  | $$| $$      | $$  \\__/ | $$   /$$____/   |___  $$\n| $$_  $$ | $$\\  $$$| $$\\  $$$      | $$  | $$| $$      | $$       | $$  | $$       /$$  \\ $$\n| $$ \\  $$| $$ \\  $$| $$ \\  $$      |  $$$$$$/|  $$$$$$$| $$      /$$$$$$| $$$$$$$$|  $$$$$$/\n|__/  \\__/|__/  \\__/|__/  \\__//$$$$$$\\______/  \\_______/|__/     |______/|________/ \\______/ \n                             |______/                                                        \n                                                                                             \n";;
+
 let print_usage (argv0 : string) =
     (*
      * Print the basic help for the command line.
@@ -54,7 +84,9 @@ let print_usage (argv0 : string) =
      * - argv0 : the program name.
      *)
 
+    print_logo ();
     Printf.printf "Usage : %s [-h] [-v] [-t] [-p INDEX] [-b] [-d DIST] [-kd] TRAIN_NB TEST_NB K\n" argv0;;
+
 
 let print_help (argv0 : string) =
     (*
@@ -82,7 +114,7 @@ let print_help (argv0 : string) =
     Printf.printf "                                  - 0 : the square of the euclidean distance (default) ;\n";
     Printf.printf "                                  - 1 : same, but only in the 20 x 20 pixels\n";
     Printf.printf "                                        center of the image ;\n";
-    Printf.printf "                                  - 2 : binarize image before applying the distance.\n";
+    Printf.printf "                                  - 2 : binarize image and use Jaccard's distance.\n";
     Printf.printf "    -p INDEX, --print INDEX   Print the image at position INDEX and exit (ignore\n";
     Printf.printf "                              positional arguments)\n";;
 
@@ -90,7 +122,7 @@ let print_help (argv0 : string) =
 let main (argv : string array) : unit =
     (*Parse command line arguments and execute the corresponding functions.*)
 
-    let proj_name = "Mnist_0cr" in (*TODO: find a name !*)
+    let proj_name = "kNN_Ocr123" in
 
     (*Init*)
     let argc = Array.length argv in
@@ -291,7 +323,7 @@ let main (argv : string array) : unit =
             Printf.printf "Success rate : %.03f%s\n" rate "%";
             if !verbose then begin
                 print_conf confusion;
-                Printf.printf "\nTime elpased : %.03fs.\n" (Sys.time () -. t)
+                print_time (Sys.time () -. t)
             end
         end
     end;;
