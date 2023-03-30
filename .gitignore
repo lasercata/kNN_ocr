@@ -1,6 +1,7 @@
 src/main
 src/print_mnist
 src/test
+src/kNN_Ocr123
 src/.depend
 *.o
 *.cmi

@@ -44,10 +44,10 @@ let print_conf (m : int array array) : unit =
 
     let n = arr_max m in
 
-    Printf.printf "\nThe confusion matrix :\n     ";
+    Printf.printf "\nThe confusion matrix :\n    ";
 
     for k = 0 to Array.length m - 1 do
-        Printf.printf "%d%*s" (k + 1) n ""
+        Printf.printf "%*s%d" n "" k
     done;
 
     Printf.printf "\n   +";
@@ -59,10 +59,7 @@ let print_conf (m : int array array) : unit =
     print_newline ();
 
     for i = 0 to Array.length m - 1 do
-        if i + 1 < 10 then
-            Printf.printf " %d | " (i + 1)
-        else
-            Printf.printf "%d | " (i + 1);
+        Printf.printf " %d | " i;
 
         for j = 0 to Array.length m.(0) - 1 do
             Printf.printf "%*d " n m.(i).(j)
