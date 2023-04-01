@@ -82,7 +82,7 @@ let print_usage (argv0 : string) =
      *)
 
     print_logo ();
-    Printf.printf "Usage : %s [-h] [-v] [-t] [-p INDEX] [-b] [-d DIST] [-kd] TRAIN_NB TEST_NB K\n" argv0;;
+    Printf.printf "Usage : %s [-h] [-v] [-t] [-p INDEX] [-u] [-d DIST] [-kd] TRAIN_NB TEST_NB K\n" argv0;;
 
 
 let print_help (argv0 : string) =
@@ -106,7 +106,7 @@ let print_help (argv0 : string) =
     Printf.printf "    -v, --verbose             Show confusion matrix and elapsed time\n";
     Printf.printf "    -t, --test                Run tests and exit (ignore positional arguments)\n";
     Printf.printf "    -kd, --kd-tree            Use a kd tree\n";
-    Printf.printf "    -b, --binarize            Preprocess the image by keeping only two colors\n";
+    Printf.printf "    -u, --unpad               Preprocess the image by removing the padding\n";
     Printf.printf "    -d DIST, --distance DIST  Give the used distance. Possible values are :\n";
     Printf.printf "                                  - 0 : the square of the euclidean distance (default) ;\n";
     Printf.printf "                                  - 1 : same, but only in the 20 x 20 pixels\n";

@@ -26,7 +26,7 @@ make cleanup
 ## Usage
 ```
 $./kNN_Ocr123 -h
-Usage : ./kNN_Ocr123 [-h] [-v] [-t] [-p INDEX] [-b] [-d DIST] [-kd] TRAIN_NB TEST_NB K
+Usage : ./kNN_Ocr123 [-h] [-v] [-t] [-p INDEX] [-u] [-d DIST] [-kd] TRAIN_NB TEST_NB K
 
 Recognize images from the MNIST data base.
 
@@ -40,7 +40,7 @@ Optional arguments :
     -v, --verbose             Show confusion matrix and elapsed time
     -t, --test                Run tests and exit (ignore positional arguments)
     -kd, --kd-tree            Use a kd tree
-    -b, --binarize            Preprocess the image by keeping only two colors
+    -u, --unpad               Preprocess the image by removing the padding
     -d DIST, --distance DIST  Give the used distance. Possible values are :
                                   - 0 : the square of the euclidean distance (default) ;
                                   - 1 : same, but only in the 20 x 20 pixels

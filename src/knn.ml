@@ -131,14 +131,18 @@ let dist_jaccard (u : int array) (v : int array) : float =
 let dist_unpad (u : int array) (v : int array) : float =
     (*Calculate a distance between u and v. Ignore the padding of the images.*)
 
-    let sum = ref 0 in
-    for i = 4 to 27 - 4 do
-        for j = 4 to 27 - 4 do
-            let x = u.(28*i + j) - v.(28*i + j) in
-            sum := !sum + (x * x)
-        done
-    done;
-    float_of_int !sum;;
+    if Array.length u = 28 then
+        let sum = ref 0 in
+        for i = 4 to 27 - 4 do
+            for j = 4 to 27 - 4 do
+                let x = u.(28*i + j) - v.(28*i + j) in
+                sum := !sum + (x * x)
+            done
+        done;
+        float_of_int !sum
+
+    else
+        euclidean_dist_2 u v;;
 
 let dist_test (u : int array) (v : int array) : float =
     (*Calculate a distance between u and v. Ignore the padding of the images.*)
@@ -228,7 +232,7 @@ let classify (seq : (int array * int) Seq.t) (k : int) (x : data) (dist : (data 
     (*
      * Return the guess of the label of the image x, using kNN algorithm.
      *
-     * - seq0 : sequence of couples of image and the corresponding label (training set)
+     * - seq  : sequence of couples of image and the corresponding label (training set)
      * - k    : the parameter of kNN
      * - x    : the image to classify ;
      * - dist : the distance function.
@@ -285,7 +289,7 @@ let classify (seq : (int array * int) Seq.t) (k : int) (x : data) (dist : (data 
     most_frequent c;;
 
 
-let test_classify (n : int) (m : int) (k : int) (dist : int) (make_conf : bool) (bin : bool) : float * (int array array) =
+let test_classify (n : int) (m : int) (k : int) (dist : int) (make_conf : bool) (unpad : bool) : float * (int array array) =
     (*
      * Run Knn.classify with n training images, m tests, and return a couple
      * containing the success rate and the confusion matrix.
@@ -294,13 +298,13 @@ let test_classify (n : int) (m : int) (k : int) (dist : int) (make_conf : bool) 
      * - m         : The number of testing images ;
      * - k         : The parameter of kNN ;
      * - dist      : The index of the wanted distance. Possible values :
-         * 0 : euclidean distance squared (to not use the sqrt) ;
+         * 0 : euclidean distance squared (to avoid using the sqrt) ;
          * 1 : same but ignore the padding ;
          * 2 : binarize colors before the calculation of the distance.
      * - make_conf : If true, fill the confusion matrix. Otherwise, it is
      *               full of zeros ;
-     * - bin       : If true, pre-process images such that they have only two
-     *               colors.
+     * - unpad     : If true, pre-process images to remove the padding and
+     *               make them 20x20 (instead of 28x28).
      *)
 
     let train_images = Mnist.open_in "train-images-idx3-ubyte"
@@ -313,9 +317,9 @@ let test_classify (n : int) (m : int) (k : int) (dist : int) (make_conf : bool) 
     and confusion = Array.make_matrix 10 10 0
     and correct_count = ref 0 in
 
-    (*Binarization*)
-    let train_seq = if bin then binarize_seq train_seq0 else train_seq0
-    and test_seq = if bin then binarize_seq test_seq0 else test_seq0 in
+    (*Unpadding*)
+    let train_seq = if unpad then unpad_seq train_seq0 else train_seq0
+    and test_seq = if unpad then unpad_seq test_seq0 else test_seq0 in
 
     Seq.iter (
         fun s ->
