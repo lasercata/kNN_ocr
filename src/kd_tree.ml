@@ -1,22 +1,23 @@
-type 'a kd_tree =
+type 'a t =
     | Leaf
-    | Node of ('a kd_tree) * 'a * ('a kd_tree)
-
-type 'a point = 'a array
+    | Node of ('a t) * 'a * ('a t)
 
 
-let compare_pt (coord : int) (u : 'a point) (v : 'a point) : int =
+let compare_pt (coord : int) (u : (Knn.data * int)) (v : (Knn.data * int)) : int =
     (*Compare two points (u, v) on the coordinate coord.*)
 
-    if u.(coord) = v.(coord) then
+    let img1, _ = u
+    and img2, _ = v in
+
+    if img1.(coord) = img2.(coord) then
         0
-    else if u.(coord) > v.(coord) then
+    else if img1.(coord) > img2.(coord) then
         1
     else
         -1;;
 
 
-let rec median_of_medians (pt_lst : 'a point list) (coord : int) (l : int) : 'a point =
+let rec median_of_medians (pt_lst : (Knn.data * int) Seq.t) (coord : int) (l : int) : Knn.data * int =
     (*
      * Divide the point list in sub lists of size l and return the median of
      * the medians, comparing the points on the `coord`-th coordinate.
@@ -24,46 +25,55 @@ let rec median_of_medians (pt_lst : 'a point list) (coord : int) (l : int) : 'a 
      * Typically, l = 5.
      *)
 
-    let len = List.length pt_lst in
-    if len = 0 then
-        failwith "kd_tree.ml: median_of_medians: error: empty list";
-
+    let len = Seq_test.length pt_lst in
     let nb_sub_lst = if len mod l = 0 then len / l else len / l + 1 in (*Number of sub arrays*)
 
+    let first_elem = match pt_lst() with
+    | Seq.Nil -> failwith "kd_tree.ml: median_of_medians: error: empty sequence"
+    | Seq.Cons(a, _) -> a
+    in
+
     if nb_sub_lst <= 1 then
-        List.hd pt_lst
+        first_elem
     else
-        let lsts = Array.make_matrix (nb_sub_lst) l (List.hd pt_lst) in  (*Array of sub arrays*)
-        List.iteri (fun i e -> lsts.(i / l).(i mod l) <- e) pt_lst;        (*filling lsts*)
+        let lsts = Array.make_matrix (nb_sub_lst) l first_elem in  (*Array of sub arrays (the init value is just to have the right type)*)
+        Seq_test.iteri (fun i e -> lsts.(i / l).(i mod l) <- e) pt_lst;        (*filling lsts*)
         Array.iter (fun p -> Array.sort (compare_pt coord) p) lsts;      (*Sorting the sub arrays*)
-        let meds = List.init nb_sub_lst (fun i -> lsts.(i).(l / 2)) in             (*Array of medians*)
+        let meds = Seq.init nb_sub_lst (fun i -> lsts.(i).(l / 2)) in             (*Sequence of medians*)
         median_of_medians meds coord l;;
 
 
-let rec median_coord (pt_lst : 'a point list) (coord : int) : ('a point * ('a point list) * ('a point list)) =
+let rec median_coord
+(pt_lst : (Knn.data * int) Seq.t)
+(coord : int) :
+((Knn.data * int) * ((Knn.data * int) Seq.t) * ((Knn.data * int) Seq.t)) =
     (*
      * Return the median calculated from the `coord`-th coordinate of the point
-     * list `pt_lst`
+     * list `pt_lst`, as well as two sequences, containing the elements lesser,
+     * respectively greater than the median.
      *
-     * - pt_lst : the points list.
-     * - coord  : the index / coordinate on which to compare.
+     * - pt_lst : the sequence of couple of images and associated label ;
+     * - coord  : the index / coordinate on which to compare on the images.
      *)
 
     (*Calculate the pivot*)
     let p = median_of_medians pt_lst coord 5 in
-    let l_inf = ref []
-    and l_sup = ref [] in
-    List.iter (
+
+    (*Calculate l_inf, l_sup*)
+    let l_inf = ref (fun _ -> Seq.Nil)
+    and l_sup = ref (fun _ -> Seq.Nil) in
+    Seq.iter (
         fun e ->
             if compare_pt coord e p = 1 then
-                l_sup := e::!l_sup
+                l_sup := Seq.cons e !l_sup
 
             else if compare_pt coord e p = -1 then
-                l_inf := e::!l_inf
+                l_inf := Seq.cons e !l_inf
     ) pt_lst;
     
-    let i = (List.length pt_lst) / 2
-    and len = List.length !l_inf in
+    (*Return the median or do a recursive call*)
+    let i = (Seq_test.length pt_lst) / 2
+    and len = Seq_test.length !l_inf in
 
     if len = i then
         (p, !l_inf, !l_sup)
@@ -75,29 +85,59 @@ let rec median_coord (pt_lst : 'a point list) (coord : int) : ('a point * ('a po
         median_coord !l_sup coord;;
 
 
-(*Todo: test the above functions. For the moment, it compiles and it ran on a random test*)
-
-(*let arr = Array.make_matrix 50 20 0;;
-
-for k = 0 to 49 do
-    arr.(k) <- Array.init 20 (fun j -> Random.int 64)
-done;;
-
-let lst = Array.to_list arr in
-Array.iter (fun i -> Printf.printf "%d, " i) (let m, _, _ = median_coord lst 3 in m);*)
-
-let rec create_kd_tree (k : int) (i : int) (l : 'a point list) : 'a point kd_tree =
+let rec create_kd_tree (k : int) (i : int) (s : (Knn.data * int) Seq.t) : (Knn.data * int) t =
     (*
-     * Return a kd_tree containing the data listed in `l`.
+     * Return a kd_tree containing the data listed in `s`.
      *
-     * - k : The dimension of the data (i.e the length of the elements in l) ;
+     * - k : The dimension of the data (i.e the length of the elements in s) ;
      * - i : The depth (the coordinate) ;
-     * - l : The list of points.
+     * - s : The sequence of couple of images and associated labels.
      *)
 
-    match l with
-    | [] -> Leaf
-    | l ->
-        let med, l_inf, l_sup = median_coord l (i mod k) in
+    match s() with
+    | Seq.Nil -> Leaf
+    | _ ->
+        let med, l_inf, l_sup = median_coord s (i mod k) in
         Node(create_kd_tree k (i + 1) l_inf, med, create_kd_tree k (i + 1) l_sup);;
+
+let rec visit
+(q : (int * float) PrioQueue.t)
+(x : Knn.data)
+(t : (Knn.data * int) t)
+(i : int)
+(n : int)
+(dist : Knn.data -> Knn.data -> float) :
+(int * float) PrioQueue.t =
+    (*
+     * Visits the n closers neighbors of x in the kd tree t.
+     *
+     * - q    : The priority queue containing the couple of label and priority ;
+     * - x    : The image ;
+     * - t    : The kd tree of couple of images and theirs associated label ;
+     * - i    : The depth in the kd tree ;
+     * - n    : The number of neighbors ;
+     * - dist : The distance function.
+     *)
+
+    let d = Array.length x in
+
+    match t with
+    | Leaf -> q (*Todo: is that correct ?*) 
+    | Node(l, x', r) ->
+        let img, lb = x' in
+        let t1, t2 = if x.(i) <= img.(i) then l, r else r, l in
+        let q = visit q x t1 ((i + 1) mod d) n dist in
+
+        let _, max_prio = PrioQueue.top q in
+        let q =
+            if PrioQueue.size q < n || max_prio >= float_of_int (abs (x.(i) - img.(i))) then begin
+                let q' = if dist x img < max_prio then
+                    PrioQueue.change_root q (lb, dist x img)
+                else
+                    q in
+                visit q' x t2 ((i + 1) mod d) n dist
+            end
+            else
+                q
+        in q;;
 

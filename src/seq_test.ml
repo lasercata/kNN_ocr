@@ -50,7 +50,10 @@ let array_of_seq (s : 'a Seq.t) : 'a array =
 
 
 let iteri (f : int -> 'a -> unit) (s : 'a Seq.t) : unit =
-    (*Same as List.iteri, but for sequences.*)
+    (*
+     * Same as List.iteri, but for sequences.
+     * Included in OCaml since version 4.14.
+     *)
 
     let rec aux (s' : 'a Seq.t) (i : int) : unit =
         match s'() with

@@ -67,10 +67,14 @@ let test (_ : unit) : unit =
     );
 
     Printf.printf "\nTesting Kd_tree functions :\n";
-    let pt_lst = [[|1; 2; 3|]; [|2; 1; 3|]; [|42; 3; 8|]] in
+    let pt_lst = Seq_test.seq_of_list [([|1; 2; 3|], 0); ([|2; 1; 3|], 1); ([|42; 3; 8|], 2)] in
+
     pass := !pass && test_func "Kd_tree.median_coord" (
         let m, i, s = Kd_tree.median_coord pt_lst 1 in
-        m = [|1; 2; 3|] && i = [[|2; 1; 3|]]
+        (let m_arr, _ = m in m_arr = [|1; 2; 3|]) &&
+        match i() with
+        | Seq.Cons(([|2; 1; 3|], 1), _) -> true
+        | _ -> false
     );
 
     if !pass then

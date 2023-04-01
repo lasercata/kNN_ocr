@@ -130,7 +130,7 @@ let main (argv : string array) : unit =
     and verbose = ref false
     and tests = ref false
     and kd_tree = ref false
-    and bin = ref false
+    and unpad = ref false
     and d = ref 0
     and print_index = ref (-1)
 
@@ -166,8 +166,8 @@ let main (argv : string array) : unit =
                 kd_tree := true;
                 incr i
             end
-            | "-b" | "--binarize" -> begin
-                bin := true;
+            | "-u" | "--unpad" -> begin
+                unpad := true;
                 incr i
             end
             | "-d" | "--distance" -> begin
@@ -316,7 +316,7 @@ let main (argv : string array) : unit =
                 Printf.printf "Option -kd not implemented yet. Ignoring this argument.\n";
 
             let t = Sys.time () in
-            let rate, confusion = Knn.test_classify !train_nb !test_nb !k !d !verbose !bin in
+            let rate, confusion = Knn.test_classify !train_nb !test_nb !k !kd_tree !d !verbose !unpad in
             Printf.printf "Success rate : %.03f%s\n" rate "%";
             if !verbose then begin
                 print_conf confusion;

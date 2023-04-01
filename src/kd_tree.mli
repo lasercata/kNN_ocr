@@ -1,8 +1,12 @@
-type 'a kd_tree =
+type 'a t =
     | Leaf
-    | Node of ('a kd_tree) * 'a * ('a kd_tree)
+    | Node of ('a t) * 'a * ('a t)
 
-type 'a point = 'a array
+(*val median_of_medians : (Knn.data * int) Seq.t -> int -> int -> Knn.data * int*)
 
-val median_coord : 'a point list -> int -> 'a point * ('a point list) * ('a point list)
-val create_kd_tree : int -> int -> 'a point list -> 'a point kd_tree
+val median_coord :
+    (Knn.data * int) Seq.t ->
+    int ->
+    (Knn.data * int) * ((Knn.data * int) Seq.t) * ((Knn.data * int) Seq.t)
+
+val create_kd_tree : int -> int -> (Knn.data * int) Seq.t -> (Knn.data * int) t

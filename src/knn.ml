@@ -289,7 +289,21 @@ let classify (seq : (int array * int) Seq.t) (k : int) (x : data) (dist : (data 
     most_frequent c;;
 
 
-let test_classify (n : int) (m : int) (k : int) (dist : int) (make_conf : bool) (unpad : bool) : float * (int array array) =
+let classify_kd (train : (int array * int) Kd_tree.t) (k : int) (x : data) (dist : (data -> data -> float)) : 'label =
+    (*
+     * Return the guess of the label of the image x, using kNN algorithm.
+     * The trainning data is given in a kd-tree.
+     *
+     * - train : kd tree of couples of image and the corresponding label (training set)
+     * - k     : the parameter of kNN
+     * - x     : the image to classify ;
+     * - dist  : the distance function.
+     *)
+
+    0;;
+
+
+let test_classify (n : int) (m : int) (k : int) (kd : bool) (dist : int) (make_conf : bool) (unpad : bool) : float * (int array array) =
     (*
      * Run Knn.classify with n training images, m tests, and return a couple
      * containing the success rate and the confusion matrix.
@@ -297,10 +311,11 @@ let test_classify (n : int) (m : int) (k : int) (dist : int) (make_conf : bool) 
      * - n         : The number of training images ;
      * - m         : The number of testing images ;
      * - k         : The parameter of kNN ;
+     * - kd        : If true, use a kd tree to optimize neighbors research ;
      * - dist      : The index of the wanted distance. Possible values :
          * 0 : euclidean distance squared (to avoid using the sqrt) ;
          * 1 : same but ignore the padding ;
-         * 2 : binarize colors before the calculation of the distance.
+         * 2 : binarize colors and use Jaccard's distance.
      * - make_conf : If true, fill the confusion matrix. Otherwise, it is
      *               full of zeros ;
      * - unpad     : If true, pre-process images to remove the padding and
