@@ -85,3 +85,19 @@ done;;
 
 let lst = Array.to_list arr in
 Array.iter (fun i -> Printf.printf "%d, " i) (let m, _, _ = median_coord lst 3 in m);*)
+
+let rec create_kd_tree (k : int) (i : int) (l : 'a point list) : 'a point kd_tree =
+    (*
+     * Return a kd_tree containing the data listed in `l`.
+     *
+     * - k : The dimension of the data (i.e the length of the elements in l) ;
+     * - i : The depth (the coordinate) ;
+     * - l : The list of points.
+     *)
+
+    match l with
+    | [] -> Leaf
+    | l ->
+        let med, l_inf, l_sup = median_coord l (i mod k) in
+        Node(create_kd_tree k (i + 1) l_inf, med, create_kd_tree k (i + 1) l_sup);;
+

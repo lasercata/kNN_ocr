@@ -2,7 +2,7 @@
 
 all: depend kNN_Ocr123
 
-kNN_Ocr123: mnist.cmx print_mnist.cmx prioQueue.cmx seq_test.cmx knn.cmx test.cmx main.cmx
+kNN_Ocr123: kd_tree.cmx mnist.cmx print_mnist.cmx prioQueue.cmx seq_test.cmx knn.cmx test.cmx main.cmx
 	ocamlopt -o $@ $^
 
 clean:

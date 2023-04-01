@@ -56,9 +56,6 @@ let test (_ : unit) : unit =
         Knn.most_frequent l1 = 1
     );
 
-    (*Test knn.ml functions*)
-    Printf.printf "\nTesting Knn functions :\n";
-
     Printf.printf "Knn.mnist_seq :\n";
     let train_images = Mnist.open_in "train-images-idx3-ubyte" in
     let train_labels = Mnist.open_in "train-labels-idx1-ubyte" in
@@ -67,6 +64,13 @@ let test (_ : unit) : unit =
     )
     (
         Knn.mnist_seq 10 train_images train_labels
+    );
+
+    Printf.printf "\nTesting Kd_tree functions :\n";
+    let pt_lst = [[|1; 2; 3|]; [|2; 1; 3|]; [|42; 3; 8|]] in
+    pass := !pass && test_func "Kd_tree.median_coord" (
+        let m, i, s = Kd_tree.median_coord pt_lst 1 in
+        m = [|1; 2; 3|] && i = [[|2; 1; 3|]]
     );
 
     if !pass then
