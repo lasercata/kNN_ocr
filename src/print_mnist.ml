@@ -86,6 +86,37 @@ let print_image_and_label (train : bool) (index : int) : unit =
     Printf.printf "\nLabel: %d\n" lb;;
 
 
+let print_time (t_diff : float) (msg : string) : unit =
+    (*
+     * Print the time difference in a nice string.
+     *
+     * - t_diff : the duration ;
+     * - msg    : the string to print in front of the time duration.
+     *)
+
+    if t_diff < 60. then
+        Printf.printf "%s : %.03fs.\n" msg t_diff
+
+    else if t_diff /. 60. < 60. then
+        Printf.printf "%s : %dm%.03fs.\n"
+            msg
+            (int_of_float (t_diff /. 60.))
+            (
+                (float_of_int ((int_of_float t_diff) mod 60))
+                +. (t_diff -. (float_of_int (int_of_float t_diff)))
+            )
+
+    else if t_diff /. 3600. < 24. then
+        Printf.printf "%s : %dh%dm%.03fs.\n"
+            msg
+            (int_of_float (t_diff /. 3600.))
+            ((int_of_float (t_diff /. 60.)) mod 60)
+            (
+                (float_of_int ((int_of_float t_diff) mod 60))
+                +. (t_diff -. (float_of_int (int_of_float t_diff)))
+            );;
+
+
 let main (_ : unit) : unit =
     if Array.length (Sys.argv) <> 2 then failwith "Exactly one argument is needed (the index of the image).";
     print_image_and_label true (int_of_string Sys.argv.(1))

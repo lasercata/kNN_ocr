@@ -22,7 +22,7 @@ let most_frequent (l : 'a list) : 'a =
     let len = List.length l in
 
     if len = 0 then
-        failwith "The list should contain at least one element !";
+        failwith "knn.ml: most_frequent: error: the list should contain at least one element !";
 
     (*Adding elements of the list in a table, in the form (i, count_item i)*)
     let table = Hashtbl.create (len / 2) in
@@ -243,35 +243,27 @@ let classify (seq : (int array * int) Seq.t) (k : int) (x : data) (dist : (data 
         fun a b ->
             let _, x1 = a
             and _, x2 = b in
-            let d = x1 -. x2 in
-
-            if d <= 1e-16 then
-                0
-            else if d < 0. then
-                1
-            else
-                -1
+            Float.compare x2 x1
     )) in
 
-    (*Insertion of the first data*)
+    (*Insertion of the data in the queue*)
     let d_max = ref infinity in
 
-    for i = 0 to k - 1 do
-        let x1, lb = Seq_test.get seq i in
-        let d = dist x1 x in
-        f := PrioQueue.insert !f (lb, d);
-
-        if d < !d_max then
-            d_max := d
-    done;
-
-    (*Insertion of the remaining data*)
     Seq_test.iteri (
         fun i s ->
             let xi, lb = s in
             let d = dist x xi in
 
-            if i >= k && d < !d_max then begin
+            (*Insertion of the first data*)
+            if i < k then begin
+                f := PrioQueue.insert !f (lb, d);
+
+                if d < !d_max then
+                    d_max := d
+            end
+
+            (*Insertion of the remaining data*)
+            else if d < !d_max then begin
                 f := PrioQueue.change_root !f (lb, d);
                 d_max := d
             end
@@ -279,13 +271,9 @@ let classify (seq : (int array * int) Seq.t) (k : int) (x : data) (dist : (data 
 
     (*Creation of the list C = {C_i | i \in f} (list of labels)*)
     let c = List.map (
-        fun i ->
-            let l, _ = i in
-            l
+        fun i -> let l, _ = i in l
     )
-    (
-        PrioQueue.to_unsorted_list !f
-    ) in
+    (PrioQueue.to_unsorted_list !f) in
     most_frequent c;;
 
 
@@ -300,10 +288,35 @@ let classify_kd (train : (int array * int) Kd_tree.t) (k : int) (x : data) (dist
      * - dist  : the distance function.
      *)
 
-    0;;
+    (*Creation of the priority queue*)
+    let f = ref (PrioQueue.create (
+        fun a b ->
+            let _, x1 = a
+            and _, x2 = b in
+            Float.compare x2 x1
+    )) in
+
+    (*Filling `f` with the k closers neigbors*)
+    f := Kd_tree.visit !f x train 0 k dist;
+
+    (*Get the most frequent one*)
+    let c = List.map (
+        fun i -> let l, _ = i in l
+    )
+    (PrioQueue.to_unsorted_list !f) in
+    most_frequent c;;
 
 
-let test_classify (n : int) (m : int) (k : int) (kd : bool) (dist : int) (make_conf : bool) (unpad : bool) : float * (int array array) =
+let test_classify
+(n : int)
+(m : int)
+(k : int)
+(kd : bool)
+(dist : int)
+(make_conf : bool)
+(unpad : bool)
+(verbose : bool) :
+float * (int array array) =
     (*
      * Run Knn.classify with n training images, m tests, and return a couple
      * containing the success rate and the confusion matrix.
@@ -319,9 +332,12 @@ let test_classify (n : int) (m : int) (k : int) (kd : bool) (dist : int) (make_c
      * - make_conf : If true, fill the confusion matrix. Otherwise, it is
      *               full of zeros ;
      * - unpad     : If true, pre-process images to remove the padding and
-     *               make them 20x20 (instead of 28x28).
+     *               make them 20x20 (instead of 28x28) ;
+     * - verbose   : If true, show the time elapsed during the initialisation.
      *)
 
+    let t0 = Sys.time () in
+    (*Init*)
     let train_images = Mnist.open_in "train-images-idx3-ubyte"
     and train_labels = Mnist.open_in "train-labels-idx1-ubyte"
     and test_images = Mnist.open_in "t10k-images-idx3-ubyte"
@@ -336,17 +352,35 @@ let test_classify (n : int) (m : int) (k : int) (kd : bool) (dist : int) (make_c
     let train_seq = if unpad then unpad_seq train_seq0 else train_seq0
     and test_seq = if unpad then unpad_seq test_seq0 else test_seq0 in
 
+    (*Choosing the function to classify according to the bool `kd`*)
+    let classifyer = 
+        if kd then
+            let img0, _ = Seq_test.get train_seq 0 in
+            let train_kd = Kd_tree.create (Array.length img0) 0 train_seq in
+            classify_kd train_kd
+        else
+            classify train_seq
+    in
+
+    if verbose then
+        Print_mnist.print_time (Sys.time () -. t0) "Initialisation duration";
+
+    let t1 = Sys.time () in
+
+    (*The tests*)
     Seq.iter (
         fun s ->
             let img, lb = s in
-            let guessed_lb = classify train_seq k img distances.(dist) in
+            let guessed_lb = classifyer k img distances.(dist) in
             if make_conf then
                 confusion.(lb).(guessed_lb) <- confusion.(lb).(guessed_lb) + 1;
             if lb = guessed_lb then incr correct_count
     )
     test_seq;
+
+    if verbose then
+        Print_mnist.print_time (Sys.time () -. t1) "Testing duration";
     
     let rate = (float_of_int !correct_count) *. 100. /. (float_of_int m) in
     (rate, confusion);;
-
 

@@ -1,27 +1,3 @@
-let print_time (t_diff : float) : unit =
-    (*Print the time difference in a nice string.*)
-
-    if t_diff < 60. then
-        Printf.printf "\nTime elapsed : %.03fs.\n" t_diff
-
-    else if t_diff /. 60. < 60. then
-        Printf.printf "\nTime elapsed : %dm%.03fs.\n"
-            (int_of_float (t_diff /. 60.))
-            (
-                (float_of_int ((int_of_float t_diff) mod 60))
-                +. (t_diff -. (float_of_int (int_of_float t_diff)))
-            )
-
-    else if t_diff /. 3600. < 24. then
-        Printf.printf "\nTime elapsed : %dh%dm%.03fs.\n"
-            (int_of_float (t_diff /. 3600.))
-            ((int_of_float (t_diff /. 60.)) mod 60)
-            (
-                (float_of_int ((int_of_float t_diff) mod 60))
-                +. (t_diff -. (float_of_int (int_of_float t_diff)))
-            );;
-
-
 let arr_max (arr : int array array) : int =
     (*Return the number of digits in the longest int from `arr`.*)
 
@@ -140,7 +116,7 @@ let main (argv : string array) : unit =
     (*Parsing*)
     if argc = 1 then begin
         print_usage argv.(0);
-        Printf.printf "%s: error: the following arguments are requied: TRAIN_NB TEST_NB K\n" proj_name;
+        Printf.printf "%s: error: the following arguments are required : TRAIN_NB TEST_NB K\n" proj_name;
         exit := true
     end
     else begin
@@ -312,16 +288,26 @@ let main (argv : string array) : unit =
         end
 
         else if not !exit then begin
-            if !kd_tree then
-                Printf.printf "Option -kd not implemented yet. Ignoring this argument.\n";
-
             let t = Sys.time () in
-            let rate, confusion = Knn.test_classify !train_nb !test_nb !k !kd_tree !d !verbose !unpad in
-            Printf.printf "Success rate : %.03f%s\n" rate "%";
+            let rate, confusion = Knn.test_classify !train_nb !test_nb !k !kd_tree !d !verbose !unpad !verbose in
             if !verbose then begin
                 print_conf confusion;
-                print_time (Sys.time () -. t)
-            end
+
+                let digit_rate = Array.init 10 (
+                    fun i ->
+                        (float_of_int (confusion.(i).(i))) *. 100.
+                        /. (float_of_int (Array.fold_left (+) 0 confusion.(i)))
+                ) in
+                Printf.printf "\nAccuracy per digit :\n";
+                Array.iteri (fun i r -> Printf.printf "\t%d : %.03f%s\n" i r "%") digit_rate;
+
+                Printf.printf "\n";
+            end;
+
+            Printf.printf "Success rate : %.03f%s\n" rate "%";
+
+            if !verbose then
+                Print_mnist.print_time (Sys.time () -. t) "\nTime elapsed"
         end
     end;;
 

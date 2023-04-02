@@ -70,7 +70,7 @@ let test (_ : unit) : unit =
     let pt_lst = Seq_test.seq_of_list [([|1; 2; 3|], 0); ([|2; 1; 3|], 1); ([|42; 3; 8|], 2)] in
 
     pass := !pass && test_func "Kd_tree.median_coord" (
-        let m, i, s = Kd_tree.median_coord pt_lst 1 in
+        let m, i, s = Kd_tree.median_coord pt_lst 1 (Seq_test.length pt_lst / 2) in
         (let m_arr, _ = m in m_arr = [|1; 2; 3|]) &&
         match i() with
         | Seq.Cons(([|2; 1; 3|], 1), _) -> true
