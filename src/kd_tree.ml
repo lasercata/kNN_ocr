@@ -111,8 +111,8 @@ let naive_median (s : (int array * int) Seq.t) (coord : int) (i : int) :
         let arr = Seq_test.array_of_seq s in
         Array.sort (compare_pt coord) arr;
         let m = arr.(i)
-        and l_inf = Seq.init (i - 1) (fun k -> arr.(k))
-        and l_sup = Seq.init (Array.length arr - i - 2) (fun k -> arr.(k + i + 1)) in
+        and l_inf = Seq_test.init (i - 1) (fun k -> arr.(k))
+        and l_sup = Seq_test.init (Array.length arr - i - 2) (fun k -> arr.(k + i + 1)) in
         m, l_inf, l_sup;;
 
 let median_func = naive_median;;
