@@ -64,6 +64,20 @@ let iteri (f : int -> 'a -> unit) (s : 'a Seq.t) : unit =
     in
     aux s 0;;
 
+(*From OCaml stdlib*)
+let rec init_aux f i j () =
+  if i < j then begin
+    Seq.Cons (f i, init_aux f (i + 1) j)
+  end
+  else
+    Seq.Nil
+
+let init n f =
+  if n < 0 then
+    invalid_arg "Seq.init"
+  else
+    init_aux f 0 n
+
 
 (*Q2 : s = 17 -> 42 -> Nil*)
 let s = (fun () -> (Seq.Cons (17, (fun () -> (Seq.Cons (42, (fun () -> Seq.Nil)))))));;

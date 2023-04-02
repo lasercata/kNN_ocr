@@ -39,7 +39,7 @@ let rec median_of_medians (pt_lst : (int array * int) Seq.t) (coord : int) (l : 
         let lsts = Array.make_matrix (nb_sub_lst) l first_elem in  (*Array of sub arrays (the init value is just to have the right type)*)
         Seq_test.iteri (fun i e -> lsts.(i / l).(i mod l) <- e) pt_lst;        (*filling lsts*)
         Array.iter (fun p -> Array.sort (compare_pt coord) p) lsts;      (*Sorting the sub arrays*)
-        let meds = Seq.init nb_sub_lst (fun i -> lsts.(i).(l / 2)) in             (*Sequence of medians*)
+        let meds = Seq_test.init nb_sub_lst (fun i -> lsts.(i).(l / 2)) in             (*Sequence of medians*)
         median_of_medians meds coord l;;
 
 
